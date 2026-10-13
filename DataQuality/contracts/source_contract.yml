@@ -1,0 +1,142 @@
+version: "1.0"
+
+source:
+  database: postgres
+  schema: public
+
+tables:
+
+  customers:
+    primary_key:
+      - customer_id
+    columns:
+      customer_id:
+        type: bigint
+        nullable: false
+      name:
+        type: varchar(100)
+        nullable: false
+      email:
+        type: varchar(255)
+        nullable: false
+        unique: true
+      created_at:
+        type: timestamp
+        nullable: false
+    checks:
+      - "name IS NOT NULL"
+      - "email IS NOT NULL"
+      - "created_at IS NOT NULL"
+      - "email must be unique"
+
+  products:
+    primary_key:
+      - product_id
+    columns:
+      product_id:
+        type: bigint
+        nullable: false
+      name:
+        type: varchar(200)
+        nullable: false
+      category:
+        type: varchar(100)
+        nullable: false
+      price:
+        type: numeric(10,2)
+        nullable: false
+      stock:
+        type: integer
+        nullable: false
+      created_at:
+        type: timestamp
+        nullable: false
+    checks:
+      - "price >= 0"
+      - "stock >= 0"
+      - "name IS NOT NULL"
+      - "category IS NOT NULL"
+      - "created_at IS NOT NULL"
+
+  orders:
+    primary_key:
+      - order_id
+    columns:
+      order_id:
+        type: bigint
+        nullable: false
+      customer_id:
+        type: bigint
+        nullable: false
+      status:
+        type: varchar(30)
+        nullable: false
+      total_amount:
+        type: numeric(12,2)
+        nullable: false
+      created_at:
+        type: timestamp
+        nullable: false
+      updated_at:
+        type: timestamp
+        nullable: false
+    checks:
+      - "customer_id must reference customers.customer_id"
+      - "status IN (PENDING, CONFIRMED, SHIPPED, DELIVERED, CANCELLED)"
+      - "total_amount >= 0"
+      - "created_at IS NOT NULL"
+      - "updated_at IS NOT NULL"
+
+  order_items:
+    primary_key:
+      - order_item_id
+    columns:
+      order_item_id:
+        type: bigint
+        nullable: false
+      order_id:
+        type: bigint
+        nullable: false
+      product_id:
+        type: bigint
+        nullable: false
+      quantity:
+        type: integer
+        nullable: false
+      unit_price:
+        type: numeric(10,2)
+        nullable: false
+    checks:
+      - "order_id must reference orders.order_id"
+      - "product_id must reference products.product_id"
+      - "quantity > 0"
+      - "unit_price >= 0"
+
+  payments:
+    primary_key:
+      - payment_id
+    columns:
+      payment_id:
+        type: bigint
+        nullable: false
+      order_id:
+        type: bigint
+        nullable: false
+      amount:
+        type: numeric(12,2)
+        nullable: false
+      status:
+        type: varchar(30)
+        nullable: false
+      payment_method:
+        type: varchar(50)
+        nullable: false
+      created_at:
+        type: timestamp
+        nullable: false
+    checks:
+      - "order_id must reference orders.order_id"
+      - "status IN (PENDING, SUCCESS, FAILED, REFUNDED)"
+      - "amount >= 0"
+      - "payment_method IS NOT NULL"
+      - "created_at IS NOT NULL"

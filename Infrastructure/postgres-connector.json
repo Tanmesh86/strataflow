@@ -1,0 +1,25 @@
+{
+  "name": "pulseflow-postgres-connector",
+  "config": {
+    "connector.class": "io.debezium.connector.postgresql.PostgresConnector",
+
+    "database.hostname": "host.docker.internal",
+    "database.port": "5432",
+    "database.user": "postgres",
+    "database.password": "Tanmesh",
+    "database.dbname": "postgres",
+
+    "topic.prefix": "pulseflow",
+
+    "plugin.name": "pgoutput",
+
+    "slot.name": "pulseflow_slot",
+    "publication.name": "pulseflow_publication",
+
+    "publication.autocreate.mode": "filtered",
+
+    "table.include.list": "public.customers,public.products,public.orders,public.order_items,public.payments",
+
+    "snapshot.mode": "initial"
+  }
+}

@@ -1,0 +1,82 @@
+
+# Secrets
+.env
+.env.*
+!.env.example
+.aws/
+*.pem
+*.key
+secrets/
+
+# Python
+__pycache__/
+*.py[cod]
+.venv/
+venv/
+
+# Spark and Airflow
+checkpoints/
+checkpoint/
+spark-warehouse/
+logs/
+*.log
+
+# dbt
+target/
+dbt_packages/
+
+# Terraform
+.terraform/
+*.tfstate
+*.tfstate.*
+*.tfplan
+
+# Generated data
+*.parquet
+*.avro
+*.orc
+*.sqlite
+*.sqlite3
+
+# IDE
+.idea/
+.vscode/
+
+
+# Local virtual environments
+.venv*/
+venv/
+env/
+
+# Local generated data and test outputs
+data/
+test_parquet*/
+*.parquet
+*.crc
+_SUCCESS
+_spark_metadata/
+
+# Streaming checkpoints and local state
+checkpoint/
+checkpoints/
+logs/
+
+# Local runtime configuration
+AirFlow/config/airflow.cfg
+
+# Terraform state and local configuration
+**/terraform.tfstate
+**/terraform.tfstate.*
+**/terraform.tfvars
+**/terraform.tfvars.json
+**/.terraform/
+
+# Local generated output
+spark-inspect.txt
+test_parquet*/
+
+# Generated incident and monitoring reports
+AI/reports/*.json
+Monitoring/reports/*.json
+DataQuality/checks/dq_report.json
+DataQuality/dlq/dlq_records.json
