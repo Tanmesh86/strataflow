@@ -1,0 +1,34 @@
+FROM apache/spark:4.0.0
+
+USER root
+
+RUN mkdir -p /opt/spark/jars \
+    /home/spark/.ivy2 \
+    /home/spark/.ivy2/cache \
+    /home/spark/.ivy2/jars
+
+# Hadoop S3A
+RUN curl -L -o /opt/spark/jars/hadoop-aws-3.4.1.jar \
+    https://repo1.maven.org/maven2/org/apache/hadoop/hadoop-aws/3.4.1/hadoop-aws-3.4.1.jar
+
+RUN curl -L -o /opt/spark/jars/aws-sdk-bundle-2.29.52.jar \
+    https://repo1.maven.org/maven2/software/amazon/awssdk/bundle/2.29.52/bundle-2.29.52.jar
+
+# Spark Kafka connector
+RUN curl -L -o /opt/spark/jars/spark-sql-kafka-0-10_2.13-4.0.0.jar \
+    https://repo1.maven.org/maven2/org/apache/spark/spark-sql-kafka-0-10_2.13/4.0.0/spark-sql-kafka-0-10_2.13-4.0.0.jar
+
+# Kafka client
+RUN curl -L -o /opt/spark/jars/kafka-clients-3.9.0.jar \
+    https://repo1.maven.org/maven2/org/apache/kafka/kafka-clients/3.9.0/kafka-clients-3.9.0.jar
+
+# Spark Kafka token provider
+RUN curl -L -o /opt/spark/jars/spark-token-provider-kafka-client_2.13-4.0.0.jar \
+    https://repo1.maven.org/maven2/org/apache/spark/spark-token-provider-kafka-client_2.13/4.0.0/spark-token-provider-kafka-client_2.13-4.0.0.jar
+
+RUN chown -R 185:185 /home/spark
+
+ENV HOME=/home/spark
+ENV IVY_HOME=/home/spark/.ivy2
+
+USER 185
