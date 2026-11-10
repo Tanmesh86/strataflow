@@ -1,4 +1,3 @@
-```python
 from datetime import datetime
 
 from airflow import DAG
@@ -7,16 +6,13 @@ from airflow.providers.standard.operators.bash import BashOperator
 
 with DAG(
     dag_id="pulseflow_data_quality",
-    description="PulseFlow data quality validation and AI incident intelligence",
+    description="StrataFlow data quality validation and AI incident intelligence",
     start_date=datetime(2026, 1, 1),
     schedule=None,
     catchup=False,
-    tags=["pulseflow", "data-quality", "ai", "incident-intelligence"],
+    tags=["strataflow", "data-quality", "ai", "incident-intelligence"],
 ) as dag:
 
-    # ---------------------------------------------------------
-    # 1. DATA QUALITY
-    # ---------------------------------------------------------
     run_data_quality = BashOperator(
         task_id="run_data_quality_checks",
         bash_command=(
@@ -25,9 +21,14 @@ with DAG(
         ),
     )
 
-    # ---------------------------------------------------------
-    # 2. FAILURE PATTERN ANALYSIS
-    # ---------------------------------------------------------
+    build_incident_context = BashOperator(
+        task_id="build_incident_context",
+        bash_command=(
+            "cd /opt/pulseflow && "
+            "python /opt/pulseflow/AI/investigator/build_incident_context.py"
+        ),
+    )
+
     run_failure_pattern_analysis = BashOperator(
         task_id="run_failure_pattern_analysis",
         bash_command=(
@@ -36,9 +37,6 @@ with DAG(
         ),
     )
 
-    # ---------------------------------------------------------
-    # 3. INCIDENT CONTEXT / INVESTIGATION
-    # ---------------------------------------------------------
     run_incident_investigation = BashOperator(
         task_id="run_incident_investigation",
         bash_command=(
@@ -47,23 +45,18 @@ with DAG(
         ),
     )
 
-    # ---------------------------------------------------------
-    # 4. LLM INCIDENT ANALYSIS
-    # ---------------------------------------------------------
     run_llm_incident_analysis = BashOperator(
         task_id="run_llm_incident_analysis",
         bash_command=(
             "cd /opt/pulseflow && "
-            "python /opt/pulseflow/AI/investigator/llm_incident_analyzer.py"
+            "python /opt/pulseflow/AI/rca/llm_incident_analyzer.py"
         ),
         env={
             "OLLAMA_HOST": "http://host.docker.internal:11434",
         },
+        append_env=True,
     )
 
-    # ---------------------------------------------------------
-    # 5. EVIDENCE RECONCILIATION
-    # ---------------------------------------------------------
     run_evidence_reconciliation = BashOperator(
         task_id="run_evidence_reconciliation",
         bash_command=(
@@ -72,14 +65,11 @@ with DAG(
         ),
     )
 
-    # ---------------------------------------------------------
-    # PIPELINE DEPENDENCIES
-    # ---------------------------------------------------------
     (
         run_data_quality
+        >> build_incident_context
         >> run_failure_pattern_analysis
         >> run_incident_investigation
         >> run_llm_incident_analysis
         >> run_evidence_reconciliation
     )
-```

@@ -14,7 +14,12 @@ locals {
     "silver/",
     "gold/",
     "quarantine/",
-    "checkpoints/"
+    "checkpoints/",
+    "bronze_v2/",
+    "silver_v2/",
+    "gold_v2/",
+    "quarantine_v2/",
+    "athena-results/"
   ]
 }
 

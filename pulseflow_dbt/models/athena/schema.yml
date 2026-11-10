@@ -1,0 +1,33 @@
+﻿version: 2
+
+models:
+  - name: product_inventory_health
+    description: Product-level inventory health derived from the Gold layer.
+    columns:
+      - name: product_id
+        data_tests:
+          - not_null
+          - unique
+      - name: product_name
+        data_tests:
+          - not_null
+      - name: inventory_status
+        data_tests:
+          - not_null
+          - accepted_values:
+              arguments:
+                values: [IN_STOCK, OUT_OF_STOCK, INVALID_STOCK]
+
+  - name: category_inventory_overview
+    description: Category-level inventory overview derived from Gold metrics.
+    columns:
+      - name: category
+        data_tests:
+          - not_null
+          - unique
+      - name: product_count
+        data_tests:
+          - not_null
+      - name: inventory_value
+        data_tests:
+          - not_null

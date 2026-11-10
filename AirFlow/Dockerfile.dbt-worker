@@ -1,0 +1,16 @@
+﻿FROM apache/airflow:3.3.1
+
+USER root
+
+RUN apt-get update \
+    && apt-get install -y --no-install-recommends build-essential \
+    && rm -rf /var/lib/apt/lists/*
+
+RUN python -m venv /opt/dbt-venv \
+    && /opt/dbt-venv/bin/pip install --no-cache-dir \
+       "dbt-core==1.12.3" \
+       "dbt-athena==1.11.1"
+
+ENV PATH="/opt/dbt-venv/bin:${PATH}"
+
+USER airflow

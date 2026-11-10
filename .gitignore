@@ -80,3 +80,9 @@ AI/reports/*.json
 Monitoring/reports/*.json
 DataQuality/checks/dq_report.json
 DataQuality/dlq/dlq_records.json
+# Local backups and database dumps
+*.bak
+*.bak-*
+*.dump
+backups/
+AirFlow/dbt-profiles/

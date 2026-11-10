@@ -1,4 +1,5 @@
-﻿import json
+﻿
+import json
 from datetime import datetime, timezone
 from pathlib import Path
 
@@ -239,29 +240,33 @@ def reconcile():
     # Scope mismatch
     # --------------------------------------------------------
 
-    deterministic_scope = (
-        list(affected_tables.keys())
-    )
-
-    ai_scope_normalized = (
-        str(ai_scope).strip().lower()
-        if ai_scope is not None
-        else ""
-    )
-
-    deterministic_scope_normalized = [
+    deterministic_scope = [
         str(table).strip().lower()
-        for table in deterministic_scope
+        for table in affected_tables.keys()
     ]
 
+    if isinstance(ai_scope, list):
+        ai_scope_normalized = [
+            str(table).strip().lower()
+            for table in ai_scope
+            if str(table).strip()
+        ]
+
+    elif isinstance(ai_scope, str):
+        ai_scope_normalized = [
+            table.strip().lower()
+            for table in ai_scope.split(",")
+            if table.strip()
+        ]
+
+    else:
+        ai_scope_normalized = []
+
     scope_matches = (
-        ai_scope_normalized in
-        deterministic_scope_normalized
+        set(ai_scope_normalized)
+        == set(deterministic_scope)
     )
 
-    # If AI reports a single table while the deterministic
-    # evidence shows multiple affected tables, the AI scope
-    # is considered incorrect.
     if not scope_matches:
         mismatches.append({
             "field": "scope",
@@ -293,20 +298,14 @@ def reconcile():
         "severity": deterministic_severity,
         "title": deterministic_title,
 
-        # Overall incident classification
         "pattern_type": pattern_type,
 
-        # Overall number of rejected records
         "total_rejected_records": total_records,
 
-        # Tables affected by the incident
         "affected_tables": affected_tables,
 
-        # Most frequent validation failure.
-        # This is NOT the overall root cause.
         "dominant_rule": dominant_rule,
 
-        # Overall deterministic incident root cause.
         "root_cause": deterministic_root_cause,
 
         "impact": deterministic_impact,
@@ -329,7 +328,7 @@ def reconcile():
     reconciled_ai["incident_type"] = pattern_type
 
     reconciled_ai["scope"] = (
-        deterministic_scope
+        list(affected_tables.keys())
     )
 
     reconciled_ai["affected_records"] = (
@@ -343,19 +342,9 @@ def reconcile():
     # --------------------------------------------------------
     # Semantic Correction
     #
-    # The AI may have interpreted the dominant validation
-    # rule as the overall root cause.
-    #
-    # That is incorrect when multiple validation rules caused
-    # the rejected records.
-    #
-    # Therefore the reconciled report explicitly separates:
-    #
-    #   root_cause
-    #       -> overall deterministic incident cause
-    #
-    #   dominant_failure_pattern
-    #       -> most frequent individual validation failure
+    # Overall root cause comes from deterministic evidence.
+    # The dominant rule is only the most frequent individual
+    # validation failure.
     # --------------------------------------------------------
 
     reconciled_ai["root_cause"] = (
@@ -368,11 +357,6 @@ def reconcile():
         "percentage": dominant_failure_percentage
     }
 
-    # Remove the misleading AI root-cause interpretation from
-    # the trusted reconciled field.
-    #
-    # The original AI interpretation is still preserved below
-    # inside ai_reasoning for complete auditability.
     reconciled_ai.pop(
         "probable_root_cause",
         None
@@ -387,8 +371,6 @@ def reconcile():
             "incident_type"
         ),
 
-        # Preserve exactly what the AI originally claimed.
-        # This is intentionally retained for auditability.
         "probable_root_cause": ai_probable_root_cause,
 
         "confidence": ai.get(
@@ -435,7 +417,6 @@ def reconcile():
 
         "deterministic_facts_override_ai": True,
 
-        # Explicit semantic clarification
         "root_cause_semantics": (
             "Overall incident root cause comes from "
             "deterministic investigation. The dominant rule "
@@ -483,8 +464,6 @@ def reconcile():
                 dominant_rule
             ),
 
-            # Explicitly expose the overall root cause
-            # separately from the dominant rule.
             "root_cause": (
                 deterministic_root_cause
             )
@@ -557,7 +536,6 @@ def main():
         f"{trusted['severity']}"
     )
 
-    # Overall incident root cause
     print(
         "Root Cause            : "
         f"{trusted['root_cause']}"
@@ -573,7 +551,6 @@ def main():
         f"{', '.join(trusted['affected_tables'].keys())}"
     )
 
-    # Dominant rule is explicitly separated from root cause.
     dominant = trusted["dominant_rule"]
 
     print(

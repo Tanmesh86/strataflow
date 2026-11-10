@@ -1,0 +1,30 @@
+version: 2
+
+sources:
+  - name: strataflow_gold
+    database: awsdatacatalog
+    schema: strataflow_catalog
+    description: Gold-layer tables from the StrataFlow data lake.
+
+    tables:
+      - name: products_current
+        description: Current product and inventory records.
+        columns:
+          - name: product_id
+            data_tests:
+              - not_null
+              - unique
+          - name: name
+            data_tests:
+              - not_null
+          - name: stock
+            data_tests:
+              - not_null
+
+      - name: category_inventory_metrics
+        description: Aggregated inventory metrics by product category.
+        columns:
+          - name: category
+            data_tests:
+              - not_null
+              - unique

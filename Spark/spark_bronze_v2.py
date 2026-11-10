@@ -1,4 +1,4 @@
-from pyspark.sql import SparkSession
+﻿from pyspark.sql import SparkSession
 from pyspark.sql.functions import col, from_json
 from pyspark.sql.types import (
     StructType,
@@ -12,9 +12,16 @@ spark = (
     SparkSession.builder
     .appName("PulseFlow-Bronze-V2")
     .master("local[*]")
+    .config(
+        "spark.hadoop.fs.s3a.aws.credentials.provider",
+        "software.amazon.awssdk.auth.credentials.ProfileCredentialsProvider"
+    )
+    .config(
+        "spark.hadoop.fs.s3a.endpoint.region",
+        "ap-south-1"
+    )
     .getOrCreate()
 )
-
 spark.sparkContext.setLogLevel("WARN")
 
 
