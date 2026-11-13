@@ -87,7 +87,7 @@
 
       environment:
         POSTGRES_USER: airflow
-        POSTGRES_PASSWORD: ${AIRFLOW_POSTGRES_PASSWORD}
+        POSTGRES_PASSWORD: ${AIRFLOW_POSTGRES_PASSWORD:?Set AIRFLOW_POSTGRES_PASSWORD in .env}
         POSTGRES_DB: airflow
 
       volumes:
@@ -124,7 +124,7 @@
       command: api-server
 
       ports:
-        - "8080:8080"
+        - "8081:8080"
 
       healthcheck:
         test:

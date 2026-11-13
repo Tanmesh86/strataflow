@@ -1,18 +1,16 @@
 import json
 import sys
-from datetime import datetime
+import os
+from datetime import datetime, timezone
+from pathlib import Path
 
 import psycopg2
 import yaml
-
-
-from pathlib import Path
 
 BASE_DIR = Path(__file__).resolve().parents[1]
 
 CONTRACT_PATH = BASE_DIR / "contracts" / "source_contract.yml"
 OUTPUT_PATH = BASE_DIR / "checks" / "dq_report.json"
-import os
 
 DB_CONFIG = {
     "host": os.getenv("PULSEFLOW_DB_HOST", "localhost"),
@@ -320,6 +318,71 @@ def check_payments(cur):
 
     return checks
 
+def check_cross_table_reconciliation(cur):
+    checks = []
+
+    # Order total must match the sum of its line items.
+    cur.execute(
+        """
+        SELECT COUNT(*)
+        FROM (
+            SELECT
+                o.order_id,
+                o.total_amount,
+                COALESCE(
+                    SUM(oi.quantity * oi.unit_price), 0
+                ) AS calculated_total
+            FROM public.orders o
+            LEFT JOIN public.order_items oi
+                ON o.order_id = oi.order_id
+            GROUP BY o.order_id, o.total_amount
+            HAVING ABS(
+                o.total_amount -
+                COALESCE(SUM(oi.quantity * oi.unit_price), 0)
+            ) > 0.01
+        ) mismatches
+        """
+    )
+    violations = cur.fetchone()[0]
+
+    checks.append({
+        "rule": "order_items_total_reconciliation",
+        "table": "orders",
+        "status": "PASS" if violations == 0 else "FAIL",
+        "violations": violations,
+    })
+
+    # Successful payment total must match the order total.
+    cur.execute(
+        """
+        SELECT COUNT(*)
+        FROM (
+            SELECT
+                o.order_id,
+                o.total_amount,
+                SUM(p.amount) AS paid_total
+            FROM public.orders o
+            JOIN public.payments p
+                ON o.order_id = p.order_id
+            WHERE p.status = 'SUCCESS'
+            GROUP BY o.order_id, o.total_amount
+            HAVING ABS(
+                o.total_amount - SUM(p.amount)
+            ) > 0.01
+        ) mismatches
+        """
+    )
+    violations = cur.fetchone()[0]
+
+    checks.append({
+        "rule": "successful_payment_reconciliation",
+        "table": "orders",
+        "status": "PASS" if violations == 0 else "FAIL",
+        "violations": violations,
+    })
+
+    return checks
+
 
 def main():
     with open(CONTRACT_PATH, "r", encoding="utf-8") as f:
@@ -354,6 +417,9 @@ def main():
         results.extend(check_order_items(cur))
         results.extend(check_payments(cur))
 
+        # New cross-table reconciliation checks
+        results.extend(check_cross_table_reconciliation(cur))
+
     finally:
         conn.close()
 
@@ -363,7 +429,7 @@ def main():
     )
 
     report = {
-        "timestamp": datetime.utcnow().isoformat() + "Z",
+        "timestamp": datetime.now(timezone.utc).isoformat(),
         "status": "PASS" if failed == 0 else "FAIL",
         "total_checks": len(results),
         "passed": len(results) - failed,
@@ -375,7 +441,7 @@ def main():
         json.dump(report, f, indent=2)
 
     print("=" * 60)
-    print("PULSEFLOW DATA QUALITY REPORT")
+    print("STRATAFLOW DATA QUALITY REPORT")
     print("=" * 60)
 
     for result in results:

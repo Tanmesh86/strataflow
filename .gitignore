@@ -86,3 +86,12 @@ DataQuality/dlq/dlq_records.json
 *.dump
 backups/
 AirFlow/dbt-profiles/
+
+# Local RAG vector database
+AI/vector_store/
+
+# Local temporary files and backups
+*.tmp
+*.pre-*
+DataQuality/checks/dq_report_backup_*.json
+Monitoring/reports/*.jsonl

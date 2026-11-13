@@ -8,6 +8,7 @@ PYTHON = sys.executable
 steps = [
     ("Kafka health check", "kafka_health.py"),
     ("Pipeline health report", "pipeline_health_monitor.py"),
+    ("ML observation collection", "ml/collect_observation.py"),
     ("CloudWatch metrics publishing", "publish_cloudwatch_metrics.py"),
 ]
 
