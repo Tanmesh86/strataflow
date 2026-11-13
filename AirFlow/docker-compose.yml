@@ -226,7 +226,7 @@
         - ./dbt-profiles:/opt/dbt-profiles:ro
 
         # AWS credentials (read-only, worker only)
-        - C:/Users/ADMIN/.aws:/home/airflow/.aws:ro
+        - ${AWS_CREDENTIALS_DIR:?Set AWS_CREDENTIALS_DIR to your local .aws directory}:/home/airflow/.aws:ro
 
       healthcheck:
         test:
