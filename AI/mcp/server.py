@@ -1,6 +1,7 @@
 
 import json
 import asyncio
+import sys
 from pathlib import Path
 
 from mcp.server.mcpserver import MCPServer
@@ -98,7 +99,8 @@ def search_knowledge(query: str) -> str:
 def main():
     print(
         "Starting StrataFlow MCP server...",
-        flush=True
+        flush=True,
+        file=sys.stderr
     )
 
     asyncio.run(server.run_stdio_async())
